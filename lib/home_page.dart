@@ -16,7 +16,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   GameController controller = GameController();
 
-
   _getInfoPanel() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -138,5 +137,11 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    controller.dispose();
   }
 }

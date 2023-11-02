@@ -11,7 +11,6 @@ class PeriodicTask {
   bool _start = false;
   Timer? _timer;
   Duration? _intervalTime;
-  final Queue<Runnable> _taskQueue = Queue();
   Runnable runnable;
 
   void setInterval(Duration time) {
@@ -28,7 +27,7 @@ class PeriodicTask {
     }
     _start = true;
     _doStart();
-    _run();
+    runnable.call();
   }
 
   _doStart(){
@@ -36,7 +35,7 @@ class PeriodicTask {
       if (!_start) {
         return;
       }
-      _run();
+      runnable.call();
     });
   }
 
@@ -46,16 +45,4 @@ class PeriodicTask {
     _timer = null;
   }
 
-  void addMicroTask(Runnable task){
-    _taskQueue.addLast(task);
-  }
-
-  _run() async {
-    if (_taskQueue.isNotEmpty) {
-      _taskQueue.first.call();
-      _taskQueue.removeFirst();
-      return;
-    }
-    runnable.call();
-  }
 }

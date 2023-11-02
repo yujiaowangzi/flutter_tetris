@@ -11,6 +11,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tetris/main.dart';
 
 void main() {
-
-  print('result = ${1/0}');
+  Set<int> temp={};
+  print(temp.add(1));
+  print(temp.add(2));
+  print(temp.add(2));
 }

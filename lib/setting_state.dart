@@ -154,6 +154,19 @@ abstract class Brick {
   }
 }
 
+class CustomBrick extends Brick{
+
+  CustomBrick(this.pList):super();
+
+  List<MatrixPoint> pList;
+
+  @override
+  List<MatrixPoint> _definePointList() {
+    return pList;
+  }
+
+}
+
 // 0
 // 0
 // 0

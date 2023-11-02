@@ -42,12 +42,12 @@ class GameController {
     _runningListener = runningListener;
   }
 
-  void completelyStop() async{
+  void completelyStop() async {
     _completelyStopFlag = true;
     stopGame();
 
-    await displayController.climb(stepX:1,stepY:-1,getState: setLightOn);
-    displayController.climb(stepX:1,stepY:1,getState: setLightOff);
+    await displayController.climb(stepX: 1, stepY: -1, getState: setLightOn);
+    displayController.climb(stepX: 1, stepY: 1, getState: setLightOff);
 
     nextDisplayCtrl.refreshStateAll(getState: setLightOff);
     nextDisplayCtrl.refresh();
@@ -68,13 +68,31 @@ class GameController {
   }
 
   void _tickFrame() {
+    LogPrint('tick is fast = $_fastSpeedFlag');
     //刚开始
     if (nextGroupBrick == null) {
       _resetBrick();
       return;
     }
+
+    if (_wouldMoveDownBricks.isNotEmpty) {
+      for (int i = 0; i < _wouldMoveDownBricks.length; i++) {
+        var brick = _wouldMoveDownBricks[i];
+        if (_canMoveDown(brick)) {
+          displayController.pushOffsetList(brick.plist, offsetY: 1);
+          displayController.refresh();
+          brick.moveOffset(y: 1);
+        } else {
+          _wouldMoveDownBricks.removeAt(i);
+        }
+      }
+
+      if (_wouldMoveDownBricks.isNotEmpty) {
+        return;
+      }
+    }
+
     var down = moveDown();
-    print('down=$down');
     if (!down) {
       _onOneBrickFinished();
     }
@@ -112,10 +130,10 @@ class GameController {
     top = displayController.colum;
   }
 
-  void startOrStop(){
+  void startOrStop() {
     if (_startFlag) {
       stopGame();
-    }else{
+    } else {
       startGame();
     }
   }
@@ -128,7 +146,9 @@ class GameController {
       LogPrint('Game over');
       return;
     }
-    _checkRowFull();
+    if (_checkRowFull()) {
+      return;
+    }
     _resetBrick();
     if (_fastSpeedFlag) {
       setMainRunning();
@@ -165,7 +185,11 @@ class GameController {
     return top < 0;
   }
 
-  _checkRowFull() {
+  List<Brick> _wouldMoveDownBricks = [];
+  List<int> checkFullRowList=[];
+
+  //检查是否有满行
+  bool _checkRowFull() {
     Set<int> rows = {};
     for (var element in curBrick.plist) {
       if (element.y < displayController.colum) {
@@ -173,27 +197,65 @@ class GameController {
       }
     }
     var fullRows =
-        displayController.getFullRowsIndex(columIndexList: rows.toList());
+        displayController.getFullRowsIndex(columIndexList: checkFullRowList);
     if (fullRows.isNotEmpty) {
       LogPrint('吃 rows=$fullRows');
       displayController.pushStateRow(fullRows, getState: setLightOff);
       displayController.refresh();
       panelController.score += fullRows.length;
 
-      _task.addMicroTask(() {
-        //添加下一帧执行任务
-        var bottom = displayController.lastColumIndex;
-        for (var i in fullRows) {
-          bottom = i < bottom ? i : bottom;
+      var bottom = displayController.lastColumIndex;
+      for (var i in fullRows) {
+        bottom = i < bottom ? i : bottom;
+      }
+      _lookupAroundTemp.clear();
+      for (int x = 0; x < displayController.row; x++) {
+        for (int y = top; y < bottom; y++) {
+          var matrixPoint = displayController.getPoint(x, y);
+          if (matrixPoint != null &&
+              matrixPoint.state.light &&
+              !_lookupAroundTemp.contains(matrixPoint)) {
+            var aroundPoints = _getAroundLightPoints(matrixPoint);
+            LogPrint('待下落', '${matrixPoint.x},${matrixPoint.y} size=${aroundPoints.length}');
+            if (aroundPoints.isNotEmpty) {
+              _wouldMoveDownBricks.add(
+                  CustomBrick(aroundPoints.map((e) => e.clone()).toList()));
+            }
+          }
         }
-        List<int> rows = [];
-        for (int i = top; i < bottom; i++) {
-          rows.add(i);
-        }
-        displayController.pushOffsetRows(rows, offsetY: fullRows.length);
-        displayController.refresh();
-      });
+      }
     }
+    return _wouldMoveDownBricks.isNotEmpty;
+  }
+
+  Set<MatrixPoint> _lookupAroundTemp = {};
+
+  List<MatrixPoint> _getAroundLightPoints(MatrixPoint point) {
+    if (!_lookupAroundTemp.add(point)) {
+      return [];
+    }
+    List<MatrixPoint> global = [point];
+    var ls = [
+      displayController.getPoint(point.x - 1, point.y),
+      displayController.getPoint(point.x + 1, point.y),
+      displayController.getPoint(point.x, point.y - 1),
+      displayController.getPoint(point.x, point.y + 1),
+    ];
+    List<MatrixPoint> ps = [];
+    for (var element in ls) {
+      if (element != null) {
+        ps.add(element);
+      }
+    }
+
+    for (var neighbor in ps) {
+      if (neighbor.state.light && !_lookupAroundTemp.contains(neighbor)) {
+        var l = _getAroundLightPoints(neighbor);
+        global.addAll(l);
+      }
+    }
+
+    return global;
   }
 
   _refreshBound(Brick brick) {
@@ -216,30 +278,30 @@ class GameController {
   }
 
   bool _overlap(Brick brick, {int offsetX = 0, int offsetY = 0}) =>
-      displayController.checkOverlap(brick.plist,
+      displayController.checkOverlapList(brick.plist,
           offsetX: offsetX, offsetY: offsetY);
 
-  bool _canMoveDown() {
-    if (_outBound_LRB(curBrick, offsetY: 1)) {
+  bool _canMoveDown(Brick brick) {
+    if (_outBound_LRB(brick, offsetY: 1)) {
       return false;
     }
-    var overlap = _overlap(curBrick, offsetY: 1);
+    var overlap = _overlap(brick, offsetY: 1);
     return !overlap;
   }
 
-  bool _canMoveLeft() {
-    if (_outBound_LRB(curBrick, offsetX: -1)) {
+  bool _canMoveLeft(Brick brick) {
+    if (_outBound_LRB(brick, offsetX: -1)) {
       return false;
     }
-    var overlap = _overlap(curBrick, offsetX: -1);
+    var overlap = _overlap(brick, offsetX: -1);
     return !overlap;
   }
 
-  bool _canMoveRight() {
-    if (_outBound_LRB(curBrick, offsetX: 1)) {
+  bool _canMoveRight(Brick brick) {
+    if (_outBound_LRB(brick, offsetX: 1)) {
       return false;
     }
-    var overlap = _overlap(curBrick, offsetX: 1);
+    var overlap = _overlap(brick, offsetX: 1);
     return !overlap;
   }
 
@@ -247,7 +309,7 @@ class GameController {
     if (!_startFlag) {
       return;
     }
-    if (_canMoveLeft()) {
+    if (_canMoveLeft(curBrick)) {
       displayController.pushOffsetList(curBrick.plist, offsetX: -1);
       displayController.refresh();
       curBrick.moveOffset(x: -1);
@@ -258,7 +320,7 @@ class GameController {
     if (!_startFlag) {
       return;
     }
-    if (_canMoveRight()) {
+    if (_canMoveRight(curBrick)) {
       displayController.pushOffsetList(curBrick.plist, offsetX: 1);
       displayController.refresh();
       curBrick.moveOffset(x: 1);
@@ -269,7 +331,7 @@ class GameController {
     if (!_startFlag) {
       return false;
     }
-    if (_canMoveDown()) {
+    if (_canMoveDown(curBrick)) {
       displayController.pushOffsetList(curBrick.plist, offsetY: 1);
       displayController.refresh();
       curBrick.moveOffset(y: 1);
@@ -289,11 +351,11 @@ class GameController {
     }
   }
 
-  void changeShape({bool next=true}) {
+  void changeShape({bool next = true}) {
     if (!_startFlag) {
       return;
     }
-    var nextBrick = next?groupBrick.next:groupBrick.last;
+    var nextBrick = next ? groupBrick.next : groupBrick.last;
     if (nextBrick == null) {
       return;
     }
@@ -311,6 +373,10 @@ class GameController {
     curBrick = nextBrick;
     displayController.pushStateList(curBrick.plist);
     displayController.refresh();
+  }
+
+  void dispose() {
+    displayController.dispose();
   }
 }
 

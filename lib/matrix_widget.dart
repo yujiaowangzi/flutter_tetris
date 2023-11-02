@@ -142,20 +142,24 @@ class DisplayController {
     return _gridViews;
   }
 
+  //状态改变并等待刷新的点
   Set<MatrixPoint> _wouldRereshPoint = {};
 
+  //修改点状态的核心方法
   pushState(int x, int y, {required ChangePointState getState}) {
     var point = getPoint(x, y);
     if (point != null) {
+      //获取最新state
       var state = getState.call(point.state);
       if (state != point.state) {
+        //如果不是同一个state对象，则比较内容是否不一样
         if (!point.state.equal(state)) {
           // LogPrint('add x=$x y=$y');
           _wouldRereshPoint.add(point);
         }
         point.state = state;
-      } else if (!state.equal(point.oldState)) {
-        point.state = state;
+        //检查状态是否改变
+      } else if (point.checkStateChange()) {
         // LogPrint('add x=$x y=$y');
         _wouldRereshPoint.add(point);
       }
@@ -259,7 +263,9 @@ class DisplayController {
     }
   }
 
-  MatrixPoint? getPoint(int x, int y) {
+  MatrixPoint? getPoint(int x, int y,{int offsetX = 0, int offsetY = 0}) {
+    x+=offsetX;
+    y+=offsetY;
     if (validAxis(x, y)) {
       return point_matrix[x][y];
     }
@@ -305,11 +311,14 @@ class DisplayController {
   }
 
   //检查是否与已经显示的部分有重叠
-  bool checkOverlap(List<MatrixPoint> pList,
+  bool checkOverlapList(List<MatrixPoint> pList,
       {int offsetX = 0, int offsetY = 0}) {
+    if (pList.isEmpty||offsetX==0&&offsetY==0) {
+      return false;
+    }
     Set<String>? excludeKeySet;
-    if (offsetX != 0 || offsetY != 0) {
-      excludeKeySet = {};
+    if (pList.length>1) {
+      excludeKeySet= {};
       for (var point in pList) {
         excludeKeySet.add(getPointKey(point.x, point.y));
       }
@@ -317,15 +326,21 @@ class DisplayController {
     for (var point in pList) {
       var x = point.x + offsetX;
       var y = point.y + offsetY;
-      var matrixPoint = getPoint(x, y);
       if (excludeKeySet == null || !excludeKeySet.contains(getPointKey(x, y))) {
-        var bound = matrixPoint?.state.light;
+        var bound = checkOverlap(x, y);
         if (bound == true) {
           return true;
         }
       }
     }
     return false;
+  }
+
+  bool checkOverlap(int x,int y,{int offsetX = 0, int offsetY = 0}){
+    var ox = x + offsetX;
+    var oy = y + offsetY;
+    var matrixPoint = getPoint(ox, oy);
+    return matrixPoint?.state.light??false;
   }
 
   refreshStateAll({required ChangePointState getState}) {
@@ -344,7 +359,7 @@ class DisplayController {
     _pointMoveAfterTemp.clear();
   }
 
-  Timer? timer;
+  bool climbFlag=false;
 
   climb({required int stepX,required int stepY,required ChangePointState getState})async{
     if (stepX==0||stepY==0) {
@@ -354,7 +369,8 @@ class DisplayController {
     var x=stepX>0?0:lastRowIndex;
     //stepY>0表示从上到下
     var y=stepY>0?0:lastColumIndex;
-    while (true) {
+    climbFlag=true;
+    while (climbFlag) {
       pushState(x, y, getState: getState);
       refresh();
       LogPrint('clim');
@@ -388,8 +404,7 @@ class DisplayController {
   }
 
   void dispose(){
-    timer?.cancel();
-
+    climbFlag=false;
   }
 
 }
@@ -402,20 +417,31 @@ typedef ChangePointState = PointState Function(PointState);
 class MatrixPoint extends ValueNotifier {
   MatrixPoint(this.x, this.y, {PointState? state}) : super(Void) {
     _state = state ?? PointState();
-    oldState = _stateFinal = _state.clone();
+    _stateFinal = _state.clone();
   }
 
   int x;
   int y;
+
+  int? l,t,r,b;
+
   late PointState _state;
-  late PointState oldState;
+  PointState? _oldState;
   late final PointState _stateFinal;
 
   PointState get state => _state;
 
   set state(PointState state) {
     _state = state;
-    oldState = _state.clone();
+    _oldState = _state.clone();
+  }
+
+  //检查是否给变状态，一次改变只能调用一次
+  bool checkStateChange(){
+    _oldState??=_stateFinal;
+    var change= !_state.equal(_oldState);
+    _oldState=_state.clone();
+    return change;
   }
 
   void refresh() {
@@ -437,7 +463,7 @@ class MatrixPoint extends ValueNotifier {
 
   @override
   String toString() {
-    return '${super.toString()} x=$x y=$y}';
+    return '${super.toString()} x=$x y=$y';
   }
 
   MatrixPoint clone() {
