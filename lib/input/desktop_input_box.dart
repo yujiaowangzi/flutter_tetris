@@ -52,26 +52,31 @@ class DesktopInputBox extends ActionInputBox {
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 10.h),
               child: DefaultTextStyle(
-                style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold,color: Colors.black87),
-                child: Row(
-                  children: [
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('开始/暂停：Enter '),
-                          Text('重开：Shift + Enter '),
-                          Text('速降：Space '),
-                        ]),
-                    SizedBox(width: 16.h,),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                style: const TextStyle(fontSize: 16,color: Colors.black54),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FittedBox(
+                    child: Row(
                       children: [
-                        Text('右移：Right '),
-                        Text('右移：Right '),
-                        Text('变换：Up/Down '),
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('开始/暂停：Enter '),
+                              Text('重开：Shift + Enter '),
+                              Text('速降：Space '),
+                            ]),
+                        SizedBox(width: 16.h,),
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('右移：Right '),
+                            Text('右移：Right '),
+                            Text('变换：Up/Down '),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             )),

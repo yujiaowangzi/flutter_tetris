@@ -1,69 +1,161 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter_tetris/game_controller.dart';
 import 'package:flutter_tetris/input/action_input_box.dart';
 
 import '../utils/log/logger.dart';
 
-class VirtualInputBox extends ActionInputBox{
-  VirtualInputBox({super.key,super.controller}){
-    controller?.setRunningListener((r) {
+class VirtualInputBox extends ActionInputBox {
+  VirtualInputBox({super.key, super.controller}) {
+    controller?.addListener((r) {
       _buttonNotifier.value = r;
     });
   }
 
-  final ValueNotifier<bool> _buttonNotifier = ValueNotifier(false);
+  final ValueNotifier<GameState> _buttonNotifier =
+      ValueNotifier(GameState.READY);
 
   _getDirectButtons() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _getAIconButton(
-                onPressed: () {
-                  moveLeft();
-                },
-                iconData: Icons.arrow_back),
-            const SizedBox(width: 20),
-            _getAIconButton(
-                onPressed: () {
-                  moveRight();
-                },
-                iconData: Icons.arrow_forward),
-          ],
-        ),
-        const SizedBox(width: 10),
-        Center(
-          child: GestureDetector(
-            onLongPress: () {
-              // controller.startFastRunning();
-              LogPrint('onLongPress');
+        SizedBox(
+          width: 45,
+          height: 95,
+          child: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_outlined,
+              size: _iconSize,
+              color: _buttonIconColor,
+            ),
+            onPressed: () {
+              moveLeft();
             },
-            onLongPressCancel: () {
-              // controller.startMainRunning();
-              LogPrint('onLongPressCancel');
-            },
-            child: IconButton(
-                onPressed: () {
-                  LogPrint('onPressed');
-                  fastMove();
-                },
-                icon: const Icon(Icons.arrow_downward)),
+            style: ButtonStyle(
+                backgroundColor:
+                    MaterialStatePropertyAll(_buttonBackgroundColor),
+                shape: const MaterialStatePropertyAll(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                  topLeft:
+                      Radius.circular(45), bottomLeft: Radius.circular(45)
+                )))),
           ),
-        )
+        ),
+        const SizedBox(width: 5),
+        SizedBox(
+          width: 45,
+          height: 95,
+          child: IconButton(
+            icon: Icon(
+              Icons.arrow_forward_ios_outlined,
+              size: _iconSize,
+              color: _buttonIconColor,
+            ),
+            onPressed: () {
+              moveRight();
+            },
+            style: ButtonStyle(
+                backgroundColor:
+                    MaterialStatePropertyAll(_buttonBackgroundColor),
+                shape: const MaterialStatePropertyAll(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                  topRight:
+                      Radius.circular(45), bottomRight: Radius.circular(45)
+                )))),
+          ),
+        ),
       ],
     );
   }
 
-  _getAIconButton(
-      {required IconData iconData, required VoidCallback onPressed}) {
-    return IconButton(
-      onPressed: onPressed,
-      icon: Icon(iconData),
+  _getRightButton(){
+    return FittedBox(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 45,
+                height: 45,
+                child: IconButton(
+                  padding: const EdgeInsets.only(top: 7,left: 7),
+                  icon: Icon(
+                    Icons.skip_previous_outlined,
+                    size: _iconSize,
+                    color: _buttonIconColor,
+                  ),
+                  onPressed: () {
+                    controller?.changeShape(next: false);
+                  },
+                  style: ButtonStyle(
+                      backgroundColor: MaterialStatePropertyAll(
+                          _buttonBackgroundColor),
+                      shape: const MaterialStatePropertyAll(
+                          RoundedRectangleBorder(
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(45),
+                              )))),
+                ),
+              ),
+              const SizedBox(
+                width: 5,
+              ),
+              SizedBox(
+                width: 45,
+                height: 45,
+                child: IconButton(
+                  padding: const EdgeInsets.only(top: 7,right: 7),
+                  icon: Icon(
+                    Icons.skip_next_outlined,
+                    size: _iconSize,
+                    color: _buttonIconColor,
+                  ),
+                  onPressed: () {
+                    controller?.changeShape();
+                  },
+                  style: ButtonStyle(
+                      backgroundColor: MaterialStatePropertyAll(
+                          _buttonBackgroundColor),
+                      shape: const MaterialStatePropertyAll(
+                          RoundedRectangleBorder(
+                              borderRadius: BorderRadius.only(
+                                topRight: Radius.circular(45),
+                              )))),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          SizedBox(
+            width: 95,
+            height: 45,
+            child: IconButton(
+              icon: Icon(
+                Icons.keyboard_double_arrow_down,
+                size: _iconSize,
+                color: _buttonIconColor,
+              ),
+              onPressed: () {
+                fastMove();
+              },
+              style: ButtonStyle(
+                  backgroundColor:
+                  MaterialStatePropertyAll(_buttonBackgroundColor),
+                  shape: const MaterialStatePropertyAll(
+                      RoundedRectangleBorder(
+                          borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(45),
+                              bottomRight: Radius.circular(45))))),
+            ),
+          )
+        ],
+      ),
     );
   }
 
+  Color _buttonBackgroundColor = Color(0xAAdddddd);
+  Color _buttonIconColor = Color(0xAA999999);
+  double _iconSize = 28;
 
   @override
   Widget build(BuildContext context) {
@@ -72,42 +164,13 @@ class VirtualInputBox extends ActionInputBox{
       builder: (_, value, child) {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _getDirectButtons(),
-            _getAIconButton(
-              iconData: Icons.cached,
-              onPressed: () {
-                change2Next();
-              },
-            ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _getAIconButton(
-                  iconData: value
-                      ? Icons.stop_circle_outlined
-                      : Icons.play_arrow_outlined,
-                  onPressed: () {
-                    if (controller?.isStart??false) {
-                      stop();
-                    } else {
-                      start();
-                    }
-                  },
-                ),
-                _getAIconButton(
-                  iconData: Icons.exit_to_app,
-                  onPressed: () {
-                    completeStop();
-                  },
-                ),
-              ],
-            )
+            _getRightButton(),
           ],
         );
       },
     );
   }
-
 }

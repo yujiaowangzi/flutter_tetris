@@ -1,17 +1,11 @@
-import 'dart:async';
-import 'dart:collection';
-import 'dart:ffi';
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_tetris/home_page.dart';
-import 'package:flutter_tetris/main.dart';
 import 'package:flutter_tetris/setting_state.dart';
 import 'package:flutter_tetris/utils/log/logger.dart';
 import 'package:flutter_tetris/utils/periodic_task.dart';
 
-import 'matrix_widget.dart';
+import 'widgets/matrix_widget.dart';
 
 class GameController {
   GameController() {
@@ -23,52 +17,64 @@ class GameController {
       viewDebug: false);
   DisplayController nextDisplayCtrl = DisplayController(3, 3, viewDebug: false);
 
+  GameState state=GameState.READY;
+
   late Brick curBrick;
 
   late GroupBrick groupBrick;
   GroupBrick? nextGroupBrick;
   PanelController panelController = PanelController();
 
-  bool get isStart => _startFlag;
-
-  bool _startFlag = false;
-
-  bool _completelyStopFlag = true;
-
   late int top;
-  Function(bool running)? _runningListener;
+  List<Function(GameState)> _stateListeners=[];
 
-  setRunningListener(Function(bool running)? runningListener) {
-    _runningListener = runningListener;
+  addListener(Function(GameState) l) {
+    _stateListeners.add(l);
+  }
+
+  removeListener(Object l){
+    _stateListeners.remove(l);
+  }
+
+  _publicListen(){
+    for (var element in _stateListeners) {
+      element.call(state);
+    }
   }
 
   void completelyStop() async {
-    _completelyStopFlag = true;
+    if (state==GameState.RESET||state==GameState.READY) {
+      return;
+    }
     stopGame();
 
-    await displayController.climb(stepX: 1, stepY: -1, getState: setLightOn);
-    displayController.climb(stepX: 1, stepY: 1, getState: setLightOff);
+    state=GameState.RESET;
+    _publicListen();
 
+    await displayController.climb(stepX: 1, stepY: -1, getState: setLightOn);
+    await displayController.climb(stepX: 1, stepY: 1, getState: setLightOff);
     nextDisplayCtrl.refreshStateAll(getState: setLightOff);
     nextDisplayCtrl.refresh();
+
     panelController.score = 0;
+    state=GameState.READY;
+    _publicListen();
     nextGroupBrick = null;
   }
 
   //开始游戏
   void startGame() {
-    if (_startFlag) {
+    if (state==GameState.RUNNING) {
       return;
     }
-    _completelyStopFlag = false;
-    _startFlag = true;
+    state=GameState.RUNNING;
     setMainRunning();
-    _runningListener?.call(true);
+    _publicListen();
     _task.start();
   }
 
   void _tickFrame() {
-    LogPrint('tick is fast = $_fastSpeedFlag');
+    LogPrint('tick is speed = $_speedType');
     //刚开始
     if (nextGroupBrick == null) {
       _resetBrick();
@@ -100,38 +106,51 @@ class GameController {
 
   late final PeriodicTask _task = PeriodicTask(() => _tickFrame());
 
-  final Duration _normalSpeed = const Duration(milliseconds: 1000);
-  final Duration _fastSpeed = const Duration(milliseconds: 50);
-
-  bool _fastSpeedFlag = false;
+  SpeedType? _speedType;
+  Duration _increaseSpeed=const Duration(milliseconds: 0);
+  final Duration _maxIncreaseSpeed=SpeedType.normal.value-const Duration(milliseconds: 200);
+  int _increaseCount=0;
 
   void setMainRunning() {
-    if (!_startFlag) {
+    if (state!=GameState.RUNNING||_speedType==SpeedType.normal) {
       return;
     }
-    _fastSpeedFlag = false;
-    _startFlag = true;
-    _task.setInterval(_normalSpeed);
+    _speedType=SpeedType.normal;
+    var speed;
+    speed=_speedType!.value-_increaseSpeed;
+    LogPrint('当前speed = ${speed.inMilliseconds}');
+    _task.setInterval(speed);
+  }
+
+  void setMiddleRunning() {
+    if (state!=GameState.RUNNING || _speedType==SpeedType.middle) {
+      return;
+    }
+    _speedType=SpeedType.middle;
+    _task.setInterval(_speedType!.value);
   }
 
   void setFastRunning() {
-    if (!_startFlag) {
+    if (state!=GameState.RUNNING || _speedType==SpeedType.fast) {
       return;
     }
-    _fastSpeedFlag = true;
-    _task.setInterval(_fastSpeed);
+    _speedType=SpeedType.fast;
+    _task.setInterval(_speedType!.value);
   }
 
   //关闭游戏
   void stopGame() {
-    _startFlag = false;
+    if (state!=GameState.RUNNING) {
+      return;
+    }
+    state=GameState.STOP;
     _task.stop();
-    _runningListener?.call(false);
+    _publicListen();
     top = displayController.colum;
   }
 
   void startOrStop() {
-    if (_startFlag) {
+    if (state==GameState.RUNNING) {
       stopGame();
     } else {
       startGame();
@@ -143,16 +162,26 @@ class GameController {
     _refreshBound(curBrick);
     if (_checkGameOver()) {
       stopGame();
+      state=GameState.GAME_OVER;
+      _publicListen();
       LogPrint('Game over');
       return;
     }
+
     if (_checkRowFull()) {
+      setMiddleRunning();
       return;
     }
     _resetBrick();
-    if (_fastSpeedFlag) {
-      setMainRunning();
+    //检查是否增加速度,
+    if (_increaseCount>10) {
+      _increaseCount=0;
+      if (_increaseSpeed<_maxIncreaseSpeed) {
+        _increaseSpeed+=const Duration(milliseconds: 100);
+      }
     }
+    setMainRunning();
+    _increaseCount++;
   }
 
   _resetBrick() {
@@ -186,18 +215,11 @@ class GameController {
   }
 
   List<Brick> _wouldMoveDownBricks = [];
-  List<int> checkFullRowList=[];
 
   //检查是否有满行
   bool _checkRowFull() {
-    Set<int> rows = {};
-    for (var element in curBrick.plist) {
-      if (element.y < displayController.colum) {
-        rows.add(element.y);
-      }
-    }
     var fullRows =
-        displayController.getFullRowsIndex(columIndexList: checkFullRowList);
+        displayController.lookupFullRowsIndex();
     if (fullRows.isNotEmpty) {
       LogPrint('吃 rows=$fullRows');
       displayController.pushStateRow(fullRows, getState: setLightOff);
@@ -216,10 +238,12 @@ class GameController {
               matrixPoint.state.light &&
               !_lookupAroundTemp.contains(matrixPoint)) {
             var aroundPoints = _getAroundLightPoints(matrixPoint);
-            LogPrint('待下落', '${matrixPoint.x},${matrixPoint.y} size=${aroundPoints.length}');
+            LogPrint('待下落',
+                '${matrixPoint.x},${matrixPoint.y} size=${aroundPoints.length}');
             if (aroundPoints.isNotEmpty) {
               _wouldMoveDownBricks.add(
-                  CustomBrick(aroundPoints.map((e) => e.clone()).toList()));
+                CustomBrick(aroundPoints.map((e) => e.clone()).toList()),
+              );
             }
           }
         }
@@ -306,7 +330,7 @@ class GameController {
   }
 
   void moveLeft() {
-    if (!_startFlag) {
+    if (state!=GameState.RUNNING) {
       return;
     }
     if (_canMoveLeft(curBrick)) {
@@ -317,7 +341,7 @@ class GameController {
   }
 
   void moveRight() {
-    if (!_startFlag) {
+    if (state!=GameState.RUNNING) {
       return;
     }
     if (_canMoveRight(curBrick)) {
@@ -328,7 +352,7 @@ class GameController {
   }
 
   bool moveDown() {
-    if (!_startFlag) {
+    if (state!=GameState.RUNNING) {
       return false;
     }
     if (_canMoveDown(curBrick)) {
@@ -352,7 +376,7 @@ class GameController {
   }
 
   void changeShape({bool next = true}) {
-    if (!_startFlag) {
+    if (state!=GameState.RUNNING) {
       return;
     }
     var nextBrick = next ? groupBrick.next : groupBrick.last;
@@ -376,6 +400,7 @@ class GameController {
   }
 
   void dispose() {
+    _stateListeners.clear();
     displayController.dispose();
   }
 }
@@ -393,4 +418,16 @@ class PanelController extends ValueNotifier<_Panel> {
 
 class _Panel {
   int score = 0;
+}
+
+enum SpeedType {
+  normal(Duration(milliseconds: 1000)),middle(Duration(milliseconds: 150)),fast(Duration(milliseconds: 50));
+
+  const SpeedType(this.value);
+
+  final Duration value;
+}
+
+enum GameState{
+  READY,RUNNING,STOP,RESET,GAME_OVER
 }

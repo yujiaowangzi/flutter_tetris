@@ -1,14 +1,10 @@
 import 'dart:async';
 import 'dart:ffi';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tetris/home_page.dart';
 import 'package:flutter_tetris/setting_state.dart';
-import 'package:flutter_tetris/utils/layout_print_widget.dart';
 import 'package:flutter_tetris/utils/log/logger.dart';
-import 'package:flutter_tetris/utils/utils.dart';
 
 class MatrixView extends StatelessWidget {
   MatrixView({super.key, required this.controller});
@@ -20,12 +16,13 @@ class MatrixView extends StatelessWidget {
     return LayoutBuilder(
       builder: (_, constrain) {
         var grid = GridView.count(
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           crossAxisCount: controller.row,
           children: controller.grdViews,
         );
-        var mW = constrain.maxWidth;
         var mH = constrain.maxHeight;
+        var mW = constrain.maxWidth;
 
         var r1 = mH / mW;
         var r2 = controller.colum / controller.row;
@@ -46,7 +43,7 @@ class MatrixView extends StatelessWidget {
             height: height,
             child: DecoratedBox(
                 decoration: BoxDecoration(
-                    border: Border.all(color: Colors.green, width: 1)),
+                    border: Border.all(color: SettingState.primaryColor, width: 1)),
                 child: grid),
           ),
         );
@@ -283,7 +280,7 @@ class DisplayController {
     return matrixList;
   }
 
-  List<int> getFullRowsIndex({List<int>? columIndexList}) {
+  List<int> lookupFullRowsIndex({List<int>? columIndexList}) {
     Set<int> fullRows = {};
     if (columIndexList == null) {
       columIndexList = [];
@@ -399,7 +396,7 @@ class DisplayController {
         }
       }
       x+=stepX;
-      await Future.delayed(const Duration(milliseconds: 10));
+      await Future.delayed(const Duration(milliseconds: 3));
     }
   }
 
