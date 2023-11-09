@@ -1,16 +1,7 @@
-# 基于flutter的俄罗斯方块游戏
+# 基于flutter以汽车充电为主题的俄罗斯方块游戏
 
-A new Flutter project.
+游戏基于小时候印象中玩的游戏规则制作，功能和UI较为完整。
 
-## Getting Started
+游戏主题为“给汽车充电”，当电池排成一排时，就能给汽车传送电力，汽车就会跑动（播放汽车动画），车速与电量储备多少相关，行驶过程会消耗电量，速度越快也会更快消耗电量，实时记录行驶里程，所以游戏成绩不止表现为分数，还考验玩家能否在电量耗尽之前补充电力，并且尽可能跑得更远。
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
