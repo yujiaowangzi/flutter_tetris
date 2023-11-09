@@ -1,4 +1,4 @@
-[中文](https://github.com/yujiaowangzi/flutter_tetris/edit/master/README.md)
+[中文](https://github.com/yujiaowangzi/flutter_tetris/tree/master)
 
 # Based on flutter's Tetris game about charging your car
 
