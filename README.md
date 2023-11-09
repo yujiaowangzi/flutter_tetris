@@ -1,4 +1,4 @@
-[ENGLISH](https://github.com/yujiaowangzi/flutter_tetris/edit/master/README_en.md)
+[ENGLISH](https://github.com/yujiaowangzi/flutter_tetris/blob/master/README_en.md)
 
 # 基于flutter以给汽车充电为主题的俄罗斯方块游戏
 
