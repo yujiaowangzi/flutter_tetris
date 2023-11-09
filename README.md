@@ -1,4 +1,4 @@
-# flutter_tetris
+# 基于flutter的俄罗斯方块游戏
 
 A new Flutter project.
 
