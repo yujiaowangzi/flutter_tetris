@@ -3,8 +3,11 @@ import 'dart:ffi';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tetris/setting_state.dart';
-import 'package:flutter_tetris/utils/log/logger.dart';
+import 'package:flutter_tetris/global/setting_state.dart';
+import 'package:flutter_tetris/utils/utils.dart';
+import 'package:flutter_tetris/widgets/battery_view.dart';
+
+import '../utils/log/logger.dart';
 
 class MatrixView extends StatelessWidget {
   MatrixView({super.key, required this.controller});
@@ -43,7 +46,8 @@ class MatrixView extends StatelessWidget {
             height: height,
             child: DecoratedBox(
                 decoration: BoxDecoration(
-                    border: Border.all(color: SettingState.primaryColor, width: 1)),
+                    border: Border.all(
+                        color: SettingState.primaryTextColor3, width: 1)),
                 child: grid),
           ),
         );
@@ -58,36 +62,50 @@ class APointView extends StatelessWidget {
   MatrixPoint point;
   bool viewDebug;
 
+  _getEnergyBattery() {
+    return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: BatteryView(
+            energyShowCount: point.data.energyLevel,
+            borderColor: Colors.grey));
+  }
+
+  _getBattery() {
+    var image;
+    if (point.data.state == PointState.FULL) {
+      return _getEnergyBattery();
+    } else if (point.data.state == PointState.MOVABLE) {
+      image = 'battery_blue.png'.img;
+    } else if(point.data.state==PointState.FIXED){
+      image = 'battery_green.png'.img;
+    }else{
+      image = 'battery_grey.png'.img;
+    }
+    return Image.asset(image);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(1),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(5),
-        child: ValueListenableBuilder(
-          valueListenable: point,
-          builder: (_, v, child) {
-            if (!viewDebug) {
-              return point.state.light
-                  ? Image.asset(
-                      'images/square1.png',
-                      fit: BoxFit.fill,
-                    )
-                  : const SizedBox();
-            }
-            return DecoratedBox(
-              decoration: BoxDecoration(
-                color: point.state.light
-                    ? point.state.color
-                    : SettingState.single.defaultColor,
-                border: Border.all(color: Colors.amber, width: 1),
-              ),
-              child: Center(
-                child: Text('${point.x},${point.y}'),
-              ),
-            );
-          },
-        ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(3),
+      child: ValueListenableBuilder(
+        valueListenable: point,
+        builder: (_, v, child) {
+          if (!viewDebug) {
+            return _getBattery();
+          }
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              color: point.data.light
+                  ? point.data.color
+                  : SettingState.single.defaultColor,
+              border: Border.all(color: Colors.amber, width: 1),
+            ),
+            child: Center(
+              child: Text('${point.x},${point.y}'),
+            ),
+          );
+        },
       ),
     );
   }
@@ -101,7 +119,7 @@ class DisplayController {
       List<MatrixPoint> cs = [];
       List<APointView> vs = [];
       for (int c = 0; c < colum; c++) {
-        var point = MatrixPoint(r, c, state: PointState(light: false));
+        var point = MatrixPoint(r, c, data: PointData(state: PointState.IDLE));
         cs.add(point);
         vs.add(APointView(point: point, viewDebug: viewDebug));
       }
@@ -124,7 +142,7 @@ class DisplayController {
 
   List<APointView> _gridViews = [];
 
-  Map<String, PointState> _pointMoveDestTemp = {};
+  Map<String, PointData> _pointMoveDestTemp = {};
   Set<String> _pointMoveAfterTemp = {};
 
   List<APointView> get grdViews {
@@ -147,26 +165,25 @@ class DisplayController {
     var point = getPoint(x, y);
     if (point != null) {
       //获取最新state
-      var state = getState.call(point.state);
-      if (state != point.state) {
+      var state = getState.call(point.data);
+      if (state != point.data) {
         //如果不是同一个state对象，则比较内容是否不一样
-        if (!point.state.equal(state)) {
-          // LogPrint('add x=$x y=$y');
+        if (!point.data.equal(state)) {
+          // LogPrint('add refresh not save object x=$x y=$y');
           _wouldRereshPoint.add(point);
         }
-        point.state = state;
+        point.data = state;
         //检查状态是否改变
-      } else if (point.checkStateChange()) {
-        // LogPrint('add x=$x y=$y');
+      } else if (point.checkAndPushDataChange()) {
+        // LogPrint('add refresh x=$x y=$y');
         _wouldRereshPoint.add(point);
       }
     }
   }
 
   void pushStateList(List<MatrixPoint>? pointList,
-      {ChangePointState? getState}) {
+      {required ChangePointState getState}) {
     if (pointList != null) {
-      getState ??= setLightOn;
       for (var point in pointList) {
         pushState(point.x, point.y, getState: getState);
       }
@@ -201,11 +218,11 @@ class DisplayController {
     }
     var dx = x + offsetX;
     var dy = y + offsetY;
-    var dState = getPoint(dx, dy)?.state;
+    var dState = getPoint(dx, dy)?.data;
     if (dState == null) {
       return;
     }
-    PointState? state = getPoint(x, y)?.state;
+    PointData? state = getPoint(x, y)?.data;
     if (state != null) {
       var key = getPointKey(x, y);
       var matrixState = state;
@@ -260,9 +277,9 @@ class DisplayController {
     }
   }
 
-  MatrixPoint? getPoint(int x, int y,{int offsetX = 0, int offsetY = 0}) {
-    x+=offsetX;
-    y+=offsetY;
+  MatrixPoint? getPoint(int x, int y, {int offsetX = 0, int offsetY = 0}) {
+    x += offsetX;
+    y += offsetY;
     if (validAxis(x, y)) {
       return point_matrix[x][y];
     }
@@ -291,7 +308,7 @@ class DisplayController {
     for (var y in columIndexList) {
       var full = true;
       for (var cPoints in point_matrix) {
-        if (!cPoints[y].state.light) {
+        if (!cPoints[y].data.light) {
           full = false;
           break;
         }
@@ -310,16 +327,22 @@ class DisplayController {
   //检查是否与已经显示的部分有重叠
   bool checkOverlapList(List<MatrixPoint> pList,
       {int offsetX = 0, int offsetY = 0}) {
-    if (pList.isEmpty||offsetX==0&&offsetY==0) {
+    if (pList.isEmpty) {
       return false;
     }
+    //是否排除自己的点，只有偏移时才有作用
+    var excludeSelf = offsetX!=0||offsetY!=0;
+    //排除自身
     Set<String>? excludeKeySet;
-    if (pList.length>1) {
-      excludeKeySet= {};
-      for (var point in pList) {
-        excludeKeySet.add(getPointKey(point.x, point.y));
+    if (excludeSelf) {
+      if (pList.length > 1) {
+        excludeKeySet = {};
+        for (var point in pList) {
+          excludeKeySet.add(getPointKey(point.x, point.y));
+        }
       }
     }
+
     for (var point in pList) {
       var x = point.x + offsetX;
       var y = point.y + offsetY;
@@ -333,11 +356,12 @@ class DisplayController {
     return false;
   }
 
-  bool checkOverlap(int x,int y,{int offsetX = 0, int offsetY = 0}){
+  //检查一个点是否已经被覆盖
+  bool checkOverlap(int x, int y, {int offsetX = 0, int offsetY = 0}) {
     var ox = x + offsetX;
     var oy = y + offsetY;
     var matrixPoint = getPoint(ox, oy);
-    return matrixPoint?.state.light??false;
+    return matrixPoint?.data.light ?? false;
   }
 
   refreshStateAll({required ChangePointState getState}) {
@@ -356,88 +380,95 @@ class DisplayController {
     _pointMoveAfterTemp.clear();
   }
 
-  bool climbFlag=false;
+  bool climbFlag = false;
 
-  climb({required int stepX,required int stepY,required ChangePointState getState})async{
-    if (stepX==0||stepY==0) {
+  climb(
+      {required int stepX,
+      required int stepY,
+      required ChangePointState getState}) async {
+    if (stepX == 0 || stepY == 0) {
       return;
     }
     //当stepX > 0 表示从左到右增长
-    var x=stepX>0?0:lastRowIndex;
+    var x = stepX > 0 ? 0 : lastRowIndex;
     //stepY>0表示从上到下
-    var y=stepY>0?0:lastColumIndex;
-    climbFlag=true;
+    var y = stepY > 0 ? 0 : lastColumIndex;
+    climbFlag = true;
     while (climbFlag) {
       pushState(x, y, getState: getState);
       refresh();
-      LogPrint('clim');
       //下到上
-      if (stepY<0) {
-        if (y==0&&(x==lastRowIndex&&stepX>0||x==0&&stepX<0)) {
+      if (stepY < 0) {
+        if (y == 0 && (x == lastRowIndex && stepX > 0 || x == 0 && stepX < 0)) {
           return;
         }
         //上到下
-      }else if (y==lastColumIndex&&(x==lastRowIndex&&stepX>0||x==0&&stepX<0)) {
+      } else if (y == lastColumIndex &&
+          (x == lastRowIndex && stepX > 0 || x == 0 && stepX < 0)) {
         return;
       }
-      if (x==0) {
-        if (stepX<0) {//刚到左边
-          y+=stepY;
-          stepX=0;
-        }else{
-          stepX=1;
+      if (x == 0) {
+        if (stepX < 0) {
+          //刚到左边
+          y += stepY;
+          stepX = 0;
+        } else {
+          stepX = 1;
         }
-      }else if (x==lastRowIndex) {
-        if (stepX>0) {//刚到达右边
-          y+=stepY;
-          stepX=0;
-        }else{
-          stepX=-1;
+      } else if (x == lastRowIndex) {
+        if (stepX > 0) {
+          //刚到达右边
+          y += stepY;
+          stepX = 0;
+        } else {
+          stepX = -1;
         }
       }
-      x+=stepX;
+      x += stepX;
       await Future.delayed(const Duration(milliseconds: 3));
     }
   }
 
-  void dispose(){
-    climbFlag=false;
+  void dispose() {
+    climbFlag = false;
   }
-
 }
 
-ChangePointState setLightOff = (s) => s..light = false;
-ChangePointState setLightOn = (s) => s..light = true;
+ChangePointState setLightOff = setStateIdle;
+ChangePointState setLightOn = setStateMovable;
+ChangePointState setStateMovable = (s) => s..state = PointState.MOVABLE;
+ChangePointState setStateFixed = (s) => s..state = PointState.FIXED;
+ChangePointState setStateFull = (s) => s..state = PointState.FULL;
+ChangePointState setStateIdle = (s) => s..state = PointState.IDLE;
 
-typedef ChangePointState = PointState Function(PointState);
+typedef ChangePointState = PointData Function(PointData);
 
 class MatrixPoint extends ValueNotifier {
-  MatrixPoint(this.x, this.y, {PointState? state}) : super(Void) {
-    _state = state ?? PointState();
-    _stateFinal = _state.clone();
+  MatrixPoint(this.x, this.y, {PointData? data}) : super(Void) {
+    _data = data ?? PointData();
+    _oldState=_dataFinal = _data.clone();
   }
 
   int x;
   int y;
 
-  int? l,t,r,b;
+  late PointData _data;
+  late PointData _oldState;
+  late final PointData _dataFinal;
 
-  late PointState _state;
-  PointState? _oldState;
-  late final PointState _stateFinal;
+  PointData get data => _data;
 
-  PointState get state => _state;
-
-  set state(PointState state) {
-    _state = state;
-    _oldState = _state.clone();
+  set data(PointData data) {
+    _data = data;
+    _oldState = _data.clone();
   }
 
   //检查是否给变状态，一次改变只能调用一次
-  bool checkStateChange(){
-    _oldState??=_stateFinal;
-    var change= !_state.equal(_oldState);
-    _oldState=_state.clone();
+  bool checkAndPushDataChange() {
+    var change = !_data.equal(_oldState);
+    if (change) {
+      _oldState = _data.clone();
+    }
     return change;
   }
 
@@ -447,7 +478,7 @@ class MatrixPoint extends ValueNotifier {
   }
 
   void reset() {
-    _state = _stateFinal.clone();
+    _data = _dataFinal.clone();
   }
 
   operator -(MatrixPoint point) {
@@ -464,21 +495,34 @@ class MatrixPoint extends ValueNotifier {
   }
 
   MatrixPoint clone() {
-    return MatrixPoint(x, y, state: state);
+    return MatrixPoint(x, y, data: data);
   }
 }
 
-class PointState {
-  PointState({this.light = true, this.color = Colors.blue});
+class PointData {
+  PointData({
+    this.color = Colors.blue,
+    this.state = PointState.MOVABLE,
+    this.energyLevel = BatteryView.energyTotalCount,
+  });
 
-  bool light; //预设的状态
   Color color;
+  PointState state;
+  int energyLevel;
 
-  PointState clone() {
-    return PointState(light: light, color: color);
+  bool get light => state!=PointState.IDLE;
+
+  set light(bool light)=> state=PointState.MOVABLE;
+
+  PointData clone() {
+    return PointData(color: color,state: state,energyLevel: energyLevel);
   }
 
-  bool equal(PointState? other) {
-    return light == other?.light && color == other?.color;
+  bool equal(PointData? other) {
+    return color == other?.color &&
+        state == other?.state &&
+        energyLevel == other?.energyLevel;
   }
 }
+
+enum PointState {IDLE,MOVABLE, FIXED, FULL }

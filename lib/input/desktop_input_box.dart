@@ -1,8 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tetris/input/action_input_box.dart';
 
 class DesktopInputBox extends ActionInputBox {
@@ -32,7 +29,7 @@ class DesktopInputBox extends ActionInputBox {
             moveRight();
           }),
           _FastMoveDownIntent: CallbackAction(onInvoke: (intent) {
-            fastMove();
+            fastSpeedMove();
           }),
           _Change2NextIntent: CallbackAction(onInvoke: (intent) {
             change2Next();
@@ -47,26 +44,26 @@ class DesktopInputBox extends ActionInputBox {
             completeStop();
           }),
         },
-        child: Focus(
+        child: const Focus(
             autofocus: true,
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 10.h),
+              padding: EdgeInsets.symmetric(vertical: 10),
               child: DefaultTextStyle(
-                style: const TextStyle(fontSize: 16,color: Colors.black54),
+                style: TextStyle(fontSize: 16,color: Colors.black54),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: FittedBox(
                     child: Row(
                       children: [
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('开始/暂停：Enter '),
                               Text('重开：Shift + Enter '),
                               Text('速降：Space '),
                             ]),
-                        SizedBox(width: 16.h,),
-                        const Column(
+                        SizedBox(width: 16,),
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('右移：Right '),

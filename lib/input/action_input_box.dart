@@ -45,8 +45,12 @@ abstract class ActionInputBox extends StatelessWidget {
     controller?.moveRight();
   }
 
-  void fastMove() {
+  void fastSpeedMove() {
     controller?.setFastRunning();
+  }
+
+  void normalSpeedMove(){
+    controller?.setMainRunning();
   }
 
   void resetMoveDown() {
@@ -74,6 +78,6 @@ abstract class ActionInputBox extends StatelessWidget {
   }
 
   void completeStop() {
-    controller?.completelyStop();
+    controller?.reset();
   }
 }

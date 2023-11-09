@@ -11,7 +11,7 @@ class SettingState {
   Color squareColor = Colors.blue;
   Color defaultColor = Colors.white;
   int row_count = 9;
-  int colum_count = 16;
+  int colum_count = 19;
 
   List<GroupBrick> bricks = [
     GroupBrick([LineBrick1(), LineBrick2()]),
@@ -33,7 +33,10 @@ class SettingState {
     ])
   ];
 
-  static Color primaryColor = Colors.black45;
+  static Color primaryColor = Colors.black87;
+  static Color primaryTextColor1 = const Color(0xff333333);
+  static Color primaryTextColor2 = const Color(0xff666666);
+  static Color primaryTextColor3 = const Color(0xff999999);
 }
 
 class GroupBrick {
@@ -85,7 +88,7 @@ abstract class Brick {
   Brick() {
     plist = _definePointList();
     for (var point in plist) {
-      point.state.light = true;
+      point.data.light = true;
     }
     _initSize();
     //移动到x轴上边

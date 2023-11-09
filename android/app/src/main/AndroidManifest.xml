@@ -2,7 +2,7 @@
     <application
         android:label="flutter_tetris"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@drawable/square">
         <activity
             android:name=".MainActivity"
             android:exported="true"

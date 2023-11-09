@@ -1,23 +1,26 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:flutter/animation.dart';
-import 'package:flutter_tetris/common/functions.dart';
 import 'package:flutter_tetris/utils/log/logger.dart';
 
 class PeriodicTask {
-  PeriodicTask(this.runnable);
+  PeriodicTask({this.mainTask});
 
   bool _start = false;
   Timer? _timer;
   Duration? _intervalTime;
-  Runnable runnable;
+  final Queue<_TaskEntity> _runnables=Queue();
+  void Function()? mainTask;
+
+  void add<T>(_Runnable task,[T? param]){
+    _runnables.addLast(_TaskEntity<T>(task,param));
+  }
 
   void setInterval(Duration time) {
     _intervalTime = time;
     if (_start && _timer != null&&_timer!.isActive) {
       _timer!.cancel();
-      _doStart();
+      _timeStart();
     }
   }
 
@@ -26,16 +29,26 @@ class PeriodicTask {
       return;
     }
     _start = true;
-    _doStart();
-    runnable.call();
+    _invokeTask();
+    _timeStart();
   }
 
-  _doStart(){
+  _invokeTask(){
+    if (_runnables.isNotEmpty) {
+      var task=_runnables.first;
+      _runnables.removeFirst();
+      task.runnable.call(task.param);
+    }else{
+      mainTask?.call();
+    }
+  }
+
+  _timeStart(){
     _timer = Timer.periodic(_intervalTime!,(timer){
       if (!_start) {
         return;
       }
-      runnable.call();
+      _invokeTask();
     });
   }
 
@@ -45,4 +58,16 @@ class PeriodicTask {
     _timer = null;
   }
 
+  void clean(){
+    stop();
+    _runnables.clear();
+  }
+}
+
+typedef _Runnable=void Function(Object? param);
+
+class _TaskEntity<T>{
+  _TaskEntity(this.runnable,[this.param]);
+  _Runnable runnable;
+  T? param;
 }

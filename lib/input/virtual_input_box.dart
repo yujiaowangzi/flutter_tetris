@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_tetris/game_controller.dart';
 import 'package:flutter_tetris/input/action_input_box.dart';
@@ -5,69 +8,102 @@ import 'package:flutter_tetris/input/action_input_box.dart';
 import '../utils/log/logger.dart';
 
 class VirtualInputBox extends ActionInputBox {
-  VirtualInputBox({super.key, super.controller}) {
-    controller?.addListener((r) {
-      _buttonNotifier.value = r;
+  VirtualInputBox({super.key, super.controller});
+
+  double _haftSize = 55;
+  double _spaceSize = 5;
+
+  double get _holdSize => 2 * _haftSize + _spaceSize;
+
+  Timer? _crossMoveTimer;
+
+  _moveFast(bool right) {
+    _crossMoveTimer?.cancel();
+    _crossMoveTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (right) {
+        moveRight();
+      } else {
+        moveLeft();
+      }
     });
   }
 
-  final ValueNotifier<GameState> _buttonNotifier =
-      ValueNotifier(GameState.READY);
-
   _getDirectButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: 45,
-          height: 95,
-          child: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_outlined,
-              size: _iconSize,
-              color: _buttonIconColor,
-            ),
-            onPressed: () {
-              moveLeft();
-            },
-            style: ButtonStyle(
-                backgroundColor:
-                    MaterialStatePropertyAll(_buttonBackgroundColor),
-                shape: const MaterialStatePropertyAll(RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                  topLeft:
-                      Radius.circular(45), bottomLeft: Radius.circular(45)
-                )))),
+    return FittedBox(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: _haftSize,
+                height: _holdSize,
+                child: GestureDetector(
+                  onLongPress: () {
+                    _moveFast(false);
+                  },
+                  onLongPressUp: () {
+                    _crossMoveTimer?.cancel();
+                  },
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.arrow_back_ios_outlined,
+                      size: _iconSize,
+                      color: _buttonIconColor,
+                    ),
+                    onPressed: () {
+                      moveLeft();
+                    },
+                    style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStatePropertyAll(_buttonBackgroundColor),
+                        shape: MaterialStatePropertyAll(RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(_haftSize),
+                          bottomLeft: Radius.circular(_haftSize),
+                        )))),
+                  ),
+                ),
+              ),
+              SizedBox(width: _spaceSize),
+              SizedBox(
+                width: _haftSize,
+                height: _holdSize,
+                child: GestureDetector(
+                  onLongPress: () {
+                    _moveFast(true);
+                  },
+                  onLongPressUp: () {
+                    _crossMoveTimer?.cancel();
+                  },
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.arrow_forward_ios_outlined,
+                      size: _iconSize,
+                      color: _buttonIconColor,
+                    ),
+                    onPressed: () {
+                      moveRight();
+                    },
+                    style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStatePropertyAll(_buttonBackgroundColor),
+                        shape: MaterialStatePropertyAll(RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(_haftSize),
+                          bottomRight: Radius.circular(_haftSize),
+                        )))),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(width: 5),
-        SizedBox(
-          width: 45,
-          height: 95,
-          child: IconButton(
-            icon: Icon(
-              Icons.arrow_forward_ios_outlined,
-              size: _iconSize,
-              color: _buttonIconColor,
-            ),
-            onPressed: () {
-              moveRight();
-            },
-            style: ButtonStyle(
-                backgroundColor:
-                    MaterialStatePropertyAll(_buttonBackgroundColor),
-                shape: const MaterialStatePropertyAll(RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                  topRight:
-                      Radius.circular(45), bottomRight: Radius.circular(45)
-                )))),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  _getRightButton(){
+  _getRightButton() {
     return FittedBox(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -75,10 +111,10 @@ class VirtualInputBox extends ActionInputBox {
           Row(
             children: [
               SizedBox(
-                width: 45,
-                height: 45,
+                width: _haftSize,
+                height: _haftSize,
                 child: IconButton(
-                  padding: const EdgeInsets.only(top: 7,left: 7),
+                  padding: const EdgeInsets.only(top: 7, left: 7),
                   icon: Icon(
                     Icons.skip_previous_outlined,
                     size: _iconSize,
@@ -88,23 +124,23 @@ class VirtualInputBox extends ActionInputBox {
                     controller?.changeShape(next: false);
                   },
                   style: ButtonStyle(
-                      backgroundColor: MaterialStatePropertyAll(
-                          _buttonBackgroundColor),
-                      shape: const MaterialStatePropertyAll(
-                          RoundedRectangleBorder(
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(45),
-                              )))),
+                      backgroundColor:
+                          MaterialStatePropertyAll(_buttonBackgroundColor),
+                      shape: MaterialStatePropertyAll(RoundedRectangleBorder(
+                          borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(_haftSize),
+                        // bottomLeft: Radius.circular(_haftSize),
+                      )))),
                 ),
               ),
-              const SizedBox(
-                width: 5,
+              SizedBox(
+                width: _spaceSize,
               ),
               SizedBox(
-                width: 45,
-                height: 45,
+                width: _haftSize,
+                height: _haftSize,
                 child: IconButton(
-                  padding: const EdgeInsets.only(top: 7,right: 7),
+                  padding: const EdgeInsets.only(top: 7, right: 7),
                   icon: Icon(
                     Icons.skip_next_outlined,
                     size: _iconSize,
@@ -114,38 +150,53 @@ class VirtualInputBox extends ActionInputBox {
                     controller?.changeShape();
                   },
                   style: ButtonStyle(
-                      backgroundColor: MaterialStatePropertyAll(
-                          _buttonBackgroundColor),
-                      shape: const MaterialStatePropertyAll(
-                          RoundedRectangleBorder(
-                              borderRadius: BorderRadius.only(
-                                topRight: Radius.circular(45),
-                              )))),
+                      backgroundColor:
+                          MaterialStatePropertyAll(_buttonBackgroundColor),
+                      shape: MaterialStatePropertyAll(RoundedRectangleBorder(
+                          borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(_haftSize),
+                        // bottomRight: Radius.circular(_haftSize),
+                      )))),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 5),
+          SizedBox(height: _spaceSize),
           SizedBox(
-            width: 95,
-            height: 45,
-            child: IconButton(
-              icon: Icon(
-                Icons.keyboard_double_arrow_down,
-                size: _iconSize,
-                color: _buttonIconColor,
-              ),
-              onPressed: () {
-                fastMove();
+            width: 2 * _haftSize + _spaceSize,
+            height: _haftSize,
+            child: GestureDetector(
+              onLongPress: () {
+                fastSpeedMove();
               },
-              style: ButtonStyle(
+              onLongPressDown: (_) {
+                // LogPrint('down','onLongPressDown');
+              },
+              onLongPressUp: () {
+                normalSpeedMove();
+              },
+              child: IconButton(
+                icon: Icon(
+                  Icons.keyboard_double_arrow_down,
+                  size: _iconSize,
+                  color: _buttonIconColor,
+                ),
+                onPressed: () {
+                  fastSpeedMove();
+                },
+                style: ButtonStyle(
                   backgroundColor:
-                  MaterialStatePropertyAll(_buttonBackgroundColor),
-                  shape: const MaterialStatePropertyAll(
-                      RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(45),
-                              bottomRight: Radius.circular(45))))),
+                      MaterialStatePropertyAll(_buttonBackgroundColor),
+                  shape: MaterialStatePropertyAll(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(_haftSize),
+                        bottomRight: Radius.circular(_haftSize),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
           )
         ],
@@ -159,18 +210,13 @@ class VirtualInputBox extends ActionInputBox {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: _buttonNotifier,
-      builder: (_, value, child) {
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _getDirectButtons(),
-            _getRightButton(),
-          ],
-        );
-      },
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _getDirectButtons(),
+        _getRightButton(),
+      ],
     );
   }
 }
