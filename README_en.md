@@ -1,7 +1,14 @@
-# 基于flutter以给汽车充电为主题的俄罗斯方块游戏
+[中文](https://github.com/yujiaowangzi/flutter_tetris)
 
-游戏基于小时候印象中玩的游戏规则制作，功能和UI较为完善。
+# Based on flutter's Tetris game about charging your car
 
-游戏主题为“给汽车充电”，当电池排成一排时，就能给汽车传送电力，汽车就会跑动（播放汽车动画），车速与电量储备多少相关，行驶过程会消耗电量，速度越快也会更快消耗电量，实时记录行驶里程，所以游戏成绩不止表现为分数，还考验玩家能否在电量耗尽之前补充电力，并且尽可能跑得更远。
+The game features and UI are relatively perfect. The page is suitable for devices of arbitrary size, supporting Android,window, and other devices can compile and run by themselves
+
+# Theme
+
+The theme of the game is "Charging the car", when the battery is lined up, it can transmit electricity to the car, the car will run (play car animation), the speed is related to the amount of power reserve, the driving process will consume electricity, the faster the speed will consume electricity faster, real-time record mileage, so the game performance is not only a score, It also tests whether the player can recharge the battery before it runs out and go as far as possible.
+
+# Operation
+There are touch screen virtual keys and keyboard operations
 
 
