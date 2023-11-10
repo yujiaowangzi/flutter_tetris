@@ -2,7 +2,7 @@
 
 # 基于flutter以给汽车充电为主题的俄罗斯方块游戏
 
-游戏功能和UI较为完善。页面适配随意大小比例的设备，支持Android,window,支持其他设备可自行编译运行
+游戏功能和UI较为完善。页面适配随意大小比例的设备，支持Android,window,支持其他设备可自行编译运行  
 ![pre1](preview/pre1.png) ![pre1](preview/pre2.png)
 # 游戏主题
 
