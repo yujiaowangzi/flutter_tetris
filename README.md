@@ -1,6 +1,6 @@
 [ENGLISH](https://github.com/yujiaowangzi/flutter_tetris/blob/master/README_en.md)
 
-![pre1](https://picnew12.photophoto.cn/20180412/xiaoqingxindongwushouhuikeaixiaolupng-32400140_1.jpg)
+![pre1](images/battery_blue.png)
 
 # 基于flutter以给汽车充电为主题的俄罗斯方块游戏
 
