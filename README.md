@@ -1,5 +1,7 @@
 [ENGLISH](https://github.com/yujiaowangzi/flutter_tetris/blob/master/README_en.md)
 
+![](images/battery_blue.png)
+
 # 基于flutter以给汽车充电为主题的俄罗斯方块游戏
 
 游戏功能和UI较为完善。页面适配随意大小比例的设备，支持Android,window,支持其他设备可自行编译运行
