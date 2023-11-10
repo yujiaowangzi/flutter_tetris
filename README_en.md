@@ -3,7 +3,7 @@
 # Based on flutter's Tetris game about charging your car
 
 The game features and UI are relatively perfect. The page is suitable for devices of arbitrary size, supporting Android,window, and other devices can compile and run by themselves  
-![](preview/pre1.png) ![](preview/pre2.png)
+<img src="preview/pre1.png" width=280px />  <img src="preview/pre2.png" width=280px />
 
 # Theme
 
