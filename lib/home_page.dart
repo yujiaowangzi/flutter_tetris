@@ -1,17 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/src/scheduler/ticker.dart';
 import 'package:flutter_tetris/car_controller.dart';
 import 'package:flutter_tetris/game_controller.dart';
 import 'package:flutter_tetris/global/setting_state.dart';
 import 'package:flutter_tetris/global/sp_key.dart';
 import 'package:flutter_tetris/input/action_input_box.dart';
 import 'package:flutter_tetris/utils/data_time_help.dart';
-import 'package:flutter_tetris/utils/log/logger.dart';
+import 'package:flutter_tetris/utils/utils.dart';
 import 'package:flutter_tetris/utils/widget_utils.dart';
 import 'package:flutter_tetris/widgets/battery_store_view.dart';
-import 'package:flutter_tetris/widgets/battery_view.dart';
 import 'package:flutter_tetris/widgets/matrix_widget.dart';
 import 'package:flutter_tetris/widgets/ratio_box.dart';
 import 'package:flutter_tetris/widgets/square_box.dart';
@@ -68,7 +66,7 @@ class _HomePageState extends State<HomePage>
               return FittedBox(
                 child: Text.rich(
                   TextSpan(
-                    text: '分数：',
+                    text: '${lt.score}：',
                     style: TextStyle(color: SettingState.primaryTextColor1),
                     children: [
                       TextSpan(
@@ -91,7 +89,7 @@ class _HomePageState extends State<HomePage>
             builder: (_, value, child) {
               return FittedBox(
                 child: Text(
-                    '时间：${DateTimeHelp.getFormatStringBySecond(value) ?? 0}',
+                    '${lt.time}：${DateTimeHelp.getFormatStringBySecond(value) ?? 0}',
                     style: const TextStyle(color: Color(0xff999999))),
               );
             },
@@ -100,7 +98,7 @@ class _HomePageState extends State<HomePage>
               valueListenable: controller.speedNotifier,
               builder: (_, value, child) {
                 return FittedBox(
-                  child: Text('速度：${controller.speedDescriber}',
+                  child: Text('${lt.speed}：${controller.speedDescriber}',
                       style: const TextStyle(color: Color(0xff999999))),
                 );
               }),
@@ -125,9 +123,9 @@ class _HomePageState extends State<HomePage>
                   child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('车速：${carController.speed} km/h',style: TextStyle(color: carController.speed>150?Colors.red:Colors.blue)),
-                  Text('电量：${carController.energy/10} kW.h',style: const TextStyle(color: Colors.orangeAccent)),
-                  Text('里程：${carController.distance} km',style: const TextStyle(color: Colors.green)),
+                  Text('${lt.speed}：${carController.speed} km/h',style: TextStyle(color: carController.speed>150?Colors.red:Colors.blue)),
+                  Text('${lt.battery}：${carController.energy/10} kW.h',style: const TextStyle(color: Colors.orangeAccent)),
+                  Text('${lt.mileage}：${carController.distance} km',style: const TextStyle(color: Colors.green)),
                 ],
               ));
             },
@@ -159,14 +157,14 @@ class _HomePageState extends State<HomePage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '本机记录: ',
+                      '${lt.local_recorde}: ',
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                           color: SettingState.primaryTextColor1),
                     ),
                     const SizedBox(height: 6),
-                    Text('分数：$score'),
+                    Text('${lt.score}：$score'),
                     const SizedBox(height: 3),
                     Text(
                       time,
@@ -187,12 +185,12 @@ class _HomePageState extends State<HomePage>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _getButton('重置', () {
+                      _getButton(lt.reset, () {
                         controller.reset();
                       }),
                       const SizedBox(height: 10),
                       _getButton(
-                        value == GameState.READY||value==GameState.STOP ?  '开始': "暂停",
+                        value == GameState.READY||value==GameState.STOP ?  lt.start: lt.stop,
                         () {
                           controller.startOrStop();
                         },

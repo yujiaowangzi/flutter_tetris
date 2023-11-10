@@ -1,5 +1,5 @@
 // DO NOT EDIT. This is code generated via package:intl/generate_localized.dart
-// This is a library that provides messages for a en locale. All the
+// This is a library that provides messages for a zh locale. All the
 // messages from the main program should be duplicated here with the same
 // function name.
 
@@ -18,20 +18,20 @@ final messages = new MessageLookup();
 typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 
 class MessageLookup extends MessageLookupByLibrary {
-  String get localeName => 'en';
+  String get localeName => 'zh';
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
-        "battery": MessageLookupByLibrary.simpleMessage("Battery"),
-        "button": MessageLookupByLibrary.simpleMessage("Button"),
-        "local_recorde": MessageLookupByLibrary.simpleMessage("Local recorde"),
-        "mileage": MessageLookupByLibrary.simpleMessage("Mileage"),
-        "press": MessageLookupByLibrary.simpleMessage("Press"),
-        "reset": MessageLookupByLibrary.simpleMessage("Reset"),
-        "score": MessageLookupByLibrary.simpleMessage("Score"),
-        "speed": MessageLookupByLibrary.simpleMessage("Speed"),
-        "start": MessageLookupByLibrary.simpleMessage("Start"),
-        "stop": MessageLookupByLibrary.simpleMessage("Stop"),
-        "time": MessageLookupByLibrary.simpleMessage("Time")
+        "battery": MessageLookupByLibrary.simpleMessage("电量"),
+        "button": MessageLookupByLibrary.simpleMessage("键"),
+        "local_recorde": MessageLookupByLibrary.simpleMessage("本地记录"),
+        "mileage": MessageLookupByLibrary.simpleMessage("里程"),
+        "press": MessageLookupByLibrary.simpleMessage("按"),
+        "reset": MessageLookupByLibrary.simpleMessage("重置"),
+        "score": MessageLookupByLibrary.simpleMessage("分数"),
+        "speed": MessageLookupByLibrary.simpleMessage("速度"),
+        "start": MessageLookupByLibrary.simpleMessage("开始"),
+        "stop": MessageLookupByLibrary.simpleMessage("暂停"),
+        "time": MessageLookupByLibrary.simpleMessage("时间")
       };
 }

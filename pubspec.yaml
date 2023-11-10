@@ -37,6 +37,8 @@ dependencies:
   shared_preferences: ^2.2.1
   lottie: ^2.6.0
   intl: ^0.18.1
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:

@@ -2,7 +2,7 @@
     <application
         android:label="flutter_tetris"
         android:name="${applicationName}"
-        android:icon="@drawable/square">
+        android:icon="@drawable/battery_green">
         <activity
             android:name=".MainActivity"
             android:exported="true"

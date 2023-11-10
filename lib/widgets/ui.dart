@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tetris/car_controller.dart';
 import 'package:flutter_tetris/game_controller.dart';
 import 'package:flutter_tetris/global/setting_state.dart';
+import 'package:flutter_tetris/utils/utils.dart';
 
 class StateUI extends StatelessWidget {
   StateUI({super.key, this.getIncreaseScore,this.state = GameState.READY});
@@ -25,11 +26,11 @@ class StateUI extends StatelessWidget {
         const SizedBox(
           height: 10,
         ),
-        Text.rich(TextSpan(text: '按', children: [
+        Text.rich(TextSpan(text: lt.press, children: [
           TextSpan(
-              text: Platform.isWindows ? ' Enter ' : '',
+              text: Platform.isWindows ? ' Enter' : '',
               style: TextStyle(color: SettingState.primaryTextColor1)),
-          const TextSpan(text: '键开始')
+          TextSpan(text: ' ${lt.button} ${lt.start}')
         ]))
       ],
     );
@@ -39,9 +40,9 @@ class StateUI extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
-          '暂停',
-          style: TextStyle(
+        Text(
+          lt.stop,
+          style: const TextStyle(
               fontSize: 30,
               fontWeight: FontWeight.bold,
               color: Colors.lightGreen),
@@ -49,11 +50,11 @@ class StateUI extends StatelessWidget {
         const SizedBox(
           height: 10,
         ),
-        Text.rich(TextSpan(text: '按', children: [
+        Text.rich(TextSpan(text: lt.press, children: [
           TextSpan(
-              text: Platform.isWindows ? ' Enter ' : '',
+              text: Platform.isWindows ? ' Enter' : '',
               style: TextStyle(color: SettingState.primaryTextColor1)),
-          const TextSpan(text: '键开始')
+          TextSpan(text: ' ${lt.button} ${lt.start}')
         ]))
       ],
     );
@@ -75,11 +76,11 @@ class StateUI extends StatelessWidget {
         ),
         DefaultTextStyle(
           style: const TextStyle(color: Colors.grey),
-          child: Text.rich(TextSpan(text: '按', children: [
+          child: Text.rich(TextSpan(text: lt.press, children: [
             TextSpan(
-                text: Platform.isWindows ? ' Shift + Enter ' : ' 重置 ',
+                text: Platform.isWindows ? ' Shift + Enter' : ' ${lt.reset} ',
                 style: const TextStyle(color: Colors.black)),
-            const TextSpan(text: '键重置')
+            TextSpan(text: ' ${lt.button} ${lt.reset}')
           ])),
         )
       ],

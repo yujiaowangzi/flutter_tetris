@@ -49,6 +49,116 @@ class S {
   static S? maybeOf(BuildContext context) {
     return Localizations.of<S>(context, S);
   }
+
+  /// `Start`
+  String get start {
+    return Intl.message(
+      'Start',
+      name: 'start',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stop`
+  String get stop {
+    return Intl.message(
+      'Stop',
+      name: 'stop',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset`
+  String get reset {
+    return Intl.message(
+      'Reset',
+      name: 'reset',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Speed`
+  String get speed {
+    return Intl.message(
+      'Speed',
+      name: 'speed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Battery`
+  String get battery {
+    return Intl.message(
+      'Battery',
+      name: 'battery',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mileage`
+  String get mileage {
+    return Intl.message(
+      'Mileage',
+      name: 'mileage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Score`
+  String get score {
+    return Intl.message(
+      'Score',
+      name: 'score',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Time`
+  String get time {
+    return Intl.message(
+      'Time',
+      name: 'time',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Local recorde`
+  String get local_recorde {
+    return Intl.message(
+      'Local recorde',
+      name: 'local_recorde',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Press`
+  String get press {
+    return Intl.message(
+      'Press',
+      name: 'press',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Button`
+  String get button {
+    return Intl.message(
+      'Button',
+      name: 'button',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
@@ -57,6 +167,7 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
   List<Locale> get supportedLocales {
     return const <Locale>[
       Locale.fromSubtags(languageCode: 'en'),
+      Locale.fromSubtags(languageCode: 'zh'),
     ];
   }
 

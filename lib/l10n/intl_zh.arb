@@ -1,0 +1,13 @@
+{
+  "start":"开始",
+  "stop": "暂停",
+  "reset": "重置",
+  "speed": "速度",
+  "battery": "电量",
+  "mileage": "里程",
+  "score": "分数",
+  "time": "时间",
+  "local_recorde": "本地记录",
+  "press": "按",
+  "button": "键"
+}

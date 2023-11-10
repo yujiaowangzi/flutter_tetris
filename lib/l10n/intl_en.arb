@@ -1,1 +1,13 @@
-{}
+{
+  "start":"Start",
+  "stop": "Stop",
+  "reset": "Reset",
+  "speed": "Speed",
+  "battery": "Battery",
+  "mileage": "Mileage",
+  "score": "Score",
+  "time": "Time",
+  "local_recorde": "Local recorde",
+  "press": "Press",
+  "button": "Button"
+}
